@@ -26,7 +26,7 @@ public class ArtResource {
     @Consumes(MediaType.APPLICATION_JSON)
     @Produces(MediaType.APPLICATION_JSON)
     public Response newArt(Art art) {
-        art.id = null;
+        art.setId(null);
         art.persist();
         return Response.status(Status.CREATED).entity(art).build();
     }
