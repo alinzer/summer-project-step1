@@ -20,8 +20,6 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 })
 
 public class Gallery extends PanacheEntity {
-    @Id
-    @GeneratedValue(strategy = GenerationType.TABLE)
     private Integer id;
     
     private String name;

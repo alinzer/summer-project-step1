@@ -18,8 +18,6 @@ import io.quarkus.hibernate.orm.panache.PanacheEntity;
 })
 
 public class Art extends PanacheEntity {
-    @Id
-    @GeneratedValue
     private Integer id;
     
     private String title;
