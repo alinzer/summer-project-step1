@@ -18,75 +18,62 @@ import javax.ws.rs.core.Response.Status;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
-import edu.yu.cs.artAPI.repositories.ArtRepository;
+import edu.yu.cs.artAPI.repositories.GalleryRepository;
 
-@Path("/arts")
+@Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
-public class ArtResource {
+public class GalleryResource {
 
-    @Inject ArtRepository ar;
-    
+    @Inject
+    GalleryRepository gr;
+
     @GET
-    public List<Art> getAll() {
-        return ar.listAll();
+    public List<Gallery> getAll() {
+        return gr.listAll();
     }
 
     @GET
     @Path("{id}")
-    public Art getById(@PathParam("id") Long id) {
-        return ar.findById(id);
+    public Gallery getById(@PathParam("id") Long id) {
+        return gr.findById(id);
     }
-    
+
     @GET
     @Path("name/{name}")
-    public Art getByName(@PathParam("name") String name) {
-        return ar.findByName(name);
-    }
-    
-    @GET
-    @Path("creator/{creator}")
-    public List<Art> getByCreator(@PathParam("creator") String creator) {
-        return ar.findByCreator(creator);
-    }
-    
-    @GET
-    @Path("gallery/{gallery}")
-    public List<Art> getByGallery(@PathParam("gallery") String gallery) {
-        return ar.findByGallery(gallery);
+    public Gallery getByName(@PathParam("name") String name) {
+        return gr.findByName(name);
     }
 
     @POST
     @Transactional
-    public Response create(Art art) {
-        ar.persist(art);
-        if (ar.isPersistent(art)) {
-            return Response.status(Status.CREATED).entity(art).build();
+    public Response create(Gallery Gallery) {
+        gr.persist(Gallery);
+        if (gr.isPersistent(Gallery)) {
+            return Response.status(Status.CREATED).entity(Gallery).build();
         }
         return Response.status(NOT_FOUND).build();
     }
-  
+
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
     @Transactional
-    public Response update(@PathParam("id") Long id, Art art) {
-        Art entity = ar.findById(id);
+    public Response update(@PathParam("id") Long id, Gallery Gallery) {
+        Gallery entity = gr.findById(id);
         if (entity == null) {
             return Response.status(NOT_FOUND).build();
         }
-        entity.name = art.name;
-        entity.creator = art.creator;
-
+        entity.name = Gallery.name;
         return Response.status(Status.OK).entity(entity).build();
-    } 
+    }
 
     @DELETE
     @Path("{id}")
     @Transactional
     public Response deleteById(@PathParam("id") Long id) {
-        // Response response = Response.status(Status.CREATED).entity(art).build();
-        boolean deleted = ar.deleteById(id);
+        // Response response = Response.status(Status.CREATED).entity(Gallery).build();
+        boolean deleted = gr.deleteById(id);
         return deleted ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
     }
 }
