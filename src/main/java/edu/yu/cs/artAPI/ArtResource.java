@@ -1,47 +1,59 @@
 package edu.yu.cs.artAPI;
 
+import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
+import static javax.ws.rs.core.Response.Status.NOT_FOUND;
+
+import java.util.ArrayList;
 import java.util.List;
+
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
-import javax.ws.rs.core.Response;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
-import static javax.ws.rs.core.Response.Status.NOT_FOUND;
-import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
-
 import edu.yu.cs.artAPI.repositories.ArtRepository;
+import edu.yu.cs.artAPI.repositories.GalleryRepository;
 
-@Path("/arts")
+@Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ArtResource {
 
     @Inject ArtRepository ar;
+    @Inject GalleryRepository gr; 
     
+         
     @GET
-    public List<Art> getAll() {
-        return ar.listAll();
-    }
-
-    @GET
-    @Path("{id}")
-    public Art getById(@PathParam("id") Long id) {
-        return ar.findById(id);
+    @Path("/{gallery-id}/arts")
+    //Gets all of the art from a specific gallery
+    public List<Art> getAll(@PathParam("gallery-id") long galleryId) {
+        return gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new).artList;
     }
     
     @GET
-    @Path("name/{name}")
-    public Art getByName(@PathParam("name") String name) {
-        return ar.findByName(name);
+    @Path("/{gallery-id}/arts/artsearch")
+    //Gets art of a specific name from a specific gallery
+    public List<Art> getByName(@PathParam("gallery-id") long galleryId, @QueryParam("name") String name) {
+        List<Art> aL = new ArrayList<>();
+        Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
+        for (Art art : gallery.artList) {
+            if (art.name.equals(name)) {
+                aL.add(art);
+            }
+        }
+        return aL;
+        // return ar.findByName(name);
     }
     
     @GET
@@ -49,16 +61,13 @@ public class ArtResource {
     public List<Art> getByCreator(@PathParam("creator") String creator) {
         return ar.findByCreator(creator);
     }
-    
-    @GET
-    @Path("gallery/{gallery}")
-    public List<Art> getByGallery(@PathParam("gallery") String gallery) {
-        return ar.findByGallery(gallery);
-    }
 
     @POST
     @Transactional
-    public Response create(Art art) {
+    @Path("/{gallery-id}/arts")
+    public Response create(@PathParam("gallery-id") long galleryId, Art art) {
+        Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
+        art.gallery = gallery;
         ar.persist(art);
         if (ar.isPersistent(art)) {
             return Response.status(Status.CREATED).entity(art).build();
@@ -67,14 +76,17 @@ public class ArtResource {
     }
   
     @PUT
-    @Path("{id}")
-    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/{gallery-id}/arts/{id}")
     @Transactional
-    public Response update(@PathParam("id") Long id, Art art) {
+    public Response update(@PathParam("gallery-id") Long galleryId, @PathParam("id") Long id, Art art) {
+        //Checks that the gallery-id refers to a gallery; if not, throws a 404
+        gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
+        
         Art entity = ar.findById(id);
         if (entity == null) {
             return Response.status(NOT_FOUND).build();
         }
+        
         entity.name = art.name;
         entity.creator = art.creator;
 
@@ -82,11 +94,14 @@ public class ArtResource {
     } 
 
     @DELETE
-    @Path("{id}")
+    @Path("/{gallery-id}/arts/{id}")
     @Transactional
-    public Response deleteById(@PathParam("id") Long id) {
-        // Response response = Response.status(Status.CREATED).entity(art).build();
+    public Response deleteById(@PathParam("gallery-id") Long galleryId, @PathParam("id") Long id) {
+        //Checks that the gallery-id refers to a gallery; if not, throws a 404
+        gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
+        
         boolean deleted = ar.deleteById(id);
         return deleted ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
+
     }
 }

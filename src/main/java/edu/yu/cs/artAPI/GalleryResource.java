@@ -18,6 +18,7 @@ import javax.ws.rs.core.Response.Status;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 
+import edu.yu.cs.artAPI.repositories.ArtRepository;
 import edu.yu.cs.artAPI.repositories.GalleryRepository;
 
 @Path("/galleries")
@@ -27,6 +28,8 @@ public class GalleryResource {
 
     @Inject
     GalleryRepository gr;
+    ArtRepository ar;
+
 
     @GET
     public List<Gallery> getAll() {
@@ -47,13 +50,20 @@ public class GalleryResource {
 
     @POST
     @Transactional
-    public Response create(Gallery Gallery) {
-        gr.persist(Gallery);
-        if (gr.isPersistent(Gallery)) {
-            return Response.status(Status.CREATED).entity(Gallery).build();
+    public Response create(Gallery gallery) {
+        gr.persist(gallery);
+        if (gr.isPersistent(gallery)) {
+            return Response.status(Status.CREATED).entity(gallery).build();
         }
         return Response.status(NOT_FOUND).build();
     }
+
+    // @POST
+    // @Transactional
+    // public String create(Gallery gallery) {
+    //     gr.persist(gallery);
+    //     return (gr.findById(gallery.id).toString() + gr.findById((long) 96).toString());
+    // }    
 
     @PUT
     @Path("{id}")
