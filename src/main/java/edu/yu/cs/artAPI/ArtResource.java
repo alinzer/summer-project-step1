@@ -32,28 +32,26 @@ public class ArtResource {
     @Inject ArtRepository ar;
     @Inject GalleryRepository gr; 
     
-         
-    @GET
-    @Path("/{gallery-id}/arts")
-    //Gets all of the art from a specific gallery
-    public List<Art> getAll(@PathParam("gallery-id") long galleryId) {
-        return gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new).artList;
-    }
-    
-    @GET
-    @Path("/{gallery-id}/arts")
-    //Optional query param of "name"
-    //Gets art of a specific name from a specific gallery
-    public List<Art> getByName(@PathParam("gallery-id") long galleryId, @QueryParam("name") String name) {
-        return ar.findByGallery(galleryId, name);
-    }
 
     @GET
     @Path("/{gallery-id}/arts")
-    // Optional query param of "creator"
-    //Gets art of a specific creator from a specific gallery
-    public List<Art> getByCreator(@PathParam("gallery-id") long galleryId, @QueryParam("creator") String creator) {
-        return ar.findByCreator(galleryId, creator);
+    public List<Art> getAll(
+            @PathParam("gallery-id") long galleryId,
+            @QueryParam("name") String name,
+            @QueryParam("creator") String creator) {
+        if (name == null & creator == null) {
+            // Gets all of the art from a specific gallery
+            return gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new).artList;
+        } else if (creator == null) {
+            //Optional query param of "name"
+            return ar.findByName(galleryId, name);
+        } else if (name == null) {
+            // Optional query param of "creator"
+            return ar.findByName(galleryId, creator);
+        } else {
+            // Optional query param of "name" and "creator"
+            return ar.findByNameAndCreator(galleryId, name, creator);
+        }
     }
 
     @POST
