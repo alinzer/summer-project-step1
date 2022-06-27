@@ -41,14 +41,16 @@ public class ArtResource {
     }
     
     @GET
-    @Path("/{gallery-id}/arts/namesearch")
+    @Path("/{gallery-id}/arts")
+    //Optional query param of "name"
     //Gets art of a specific name from a specific gallery
     public List<Art> getByName(@PathParam("gallery-id") long galleryId, @QueryParam("name") String name) {
         return ar.findByGallery(galleryId, name);
     }
 
     @GET
-    @Path("/{gallery-id}/arts/creatorsearch")
+    @Path("/{gallery-id}/arts")
+    // Optional query param of "creator"
     //Gets art of a specific creator from a specific gallery
     public List<Art> getByCreator(@PathParam("gallery-id") long galleryId, @QueryParam("creator") String creator) {
         return ar.findByCreator(galleryId, creator);
