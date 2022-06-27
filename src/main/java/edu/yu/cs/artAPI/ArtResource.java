@@ -3,6 +3,7 @@ package edu.yu.cs.artAPI;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
+import java.net.URI;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -17,8 +18,11 @@ import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
 
 import edu.yu.cs.artAPI.repositories.ArtRepository;
@@ -60,14 +64,16 @@ public class ArtResource {
     @Transactional
     @Path("/{gallery-id}/arts")
     //Create a piece of art within the gallery of the ID given by the path parameter
-    public Response create(@PathParam("gallery-id") long galleryId, Art art) {
+    public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) {
         Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
         art.gallery = gallery;
         ar.persist(art);
-        if (ar.isPersistent(art)) {
-            return Response.status(Status.CREATED).entity(art).build();
+        if (!ar.isPersistent(art)) {
+            throw new NotFoundException();
         }
-        return Response.status(NOT_FOUND).build();
+        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+        uriBuilder.path(Long.toString(art.id));
+        return Response.created(uriBuilder.build()).entity(art).status(Status.CREATED).build();
     }
   
     @PUT

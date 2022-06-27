@@ -10,9 +10,12 @@ import javax.ws.rs.NotFoundException;
 import javax.ws.rs.POST;
 import javax.ws.rs.PUT;
 import javax.ws.rs.core.Response;
+import javax.ws.rs.core.UriBuilder;
+import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
@@ -54,12 +57,15 @@ public class GalleryResource {
 
     @POST
     @Transactional
-    public Response create(Gallery gallery) {
+    public Response create(Gallery gallery, @Context UriInfo uriInfo) {
         gr.persist(gallery);
         if (!gr.isPersistent(gallery)) {
             throw new NotFoundException();
         }
-        return Response.status(Status.CREATED).entity(gallery).build();
+        // return Response.status(Status.CREATED).entity(gallery).build();
+        UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
+        uriBuilder.path(Long.toString(gallery.id));
+        return Response.created(uriBuilder.build()).entity(gallery).status(Status.CREATED).build();
     }
 
     @PUT
