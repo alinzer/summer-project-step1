@@ -12,12 +12,16 @@ public class ArtRepository implements PanacheRepository<Art> {
         return find("name", name).firstResult();
     }
 
-    public List<Art> findByCreator(String creator){
-       return find("creator", creator).list();
+    public List<Art> findByCreator(long galleryId, String creator){
+       return list("gallery_id = ?1 and creator = ?2", galleryId, creator);
     }   
     
-    public List<Art> findByGallery(String gallery) {
+    public List<Art> findAllByGallery(String gallery) {
         return find("gallery", gallery).list();
     }
    
+    public List<Art> findByGallery(long galleryId, String name) {
+        // return list("gallery", gallery);
+        return list("gallery_id = ?1 and name = ?2", galleryId, name);
+    }
 }

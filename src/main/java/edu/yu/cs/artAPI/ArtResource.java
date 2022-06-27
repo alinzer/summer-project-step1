@@ -3,7 +3,6 @@ package edu.yu.cs.artAPI;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.inject.Inject;
@@ -42,29 +41,23 @@ public class ArtResource {
     }
     
     @GET
-    @Path("/{gallery-id}/arts/artsearch")
+    @Path("/{gallery-id}/arts/namesearch")
     //Gets art of a specific name from a specific gallery
     public List<Art> getByName(@PathParam("gallery-id") long galleryId, @QueryParam("name") String name) {
-        List<Art> aL = new ArrayList<>();
-        Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
-        for (Art art : gallery.artList) {
-            if (art.name.equals(name)) {
-                aL.add(art);
-            }
-        }
-        return aL;
-        // return ar.findByName(name);
+        return ar.findByGallery(galleryId, name);
     }
-    
+
     @GET
-    @Path("creator/{creator}")
-    public List<Art> getByCreator(@PathParam("creator") String creator) {
-        return ar.findByCreator(creator);
+    @Path("/{gallery-id}/arts/creatorsearch")
+    //Gets art of a specific creator from a specific gallery
+    public List<Art> getByCreator(@PathParam("gallery-id") long galleryId, @QueryParam("creator") String creator) {
+        return ar.findByCreator(galleryId, creator);
     }
 
     @POST
     @Transactional
     @Path("/{gallery-id}/arts")
+    //Create a piece of art within the gallery of the ID given by the path parameter
     public Response create(@PathParam("gallery-id") long galleryId, Art art) {
         Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
         art.gallery = gallery;
@@ -78,6 +71,7 @@ public class ArtResource {
     @PUT
     @Path("/{gallery-id}/arts/{id}")
     @Transactional
+    //Replaces the piece of art that exists at a certain id in a certain gallery with a new one
     public Response update(@PathParam("gallery-id") Long galleryId, @PathParam("id") Long id, Art art) {
         //Checks that the gallery-id refers to a gallery; if not, throws a 404
         gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);

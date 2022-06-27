@@ -4,7 +4,6 @@ import java.util.*;
 
 import javax.persistence.Entity;
 import javax.persistence.OneToMany;
-import javax.persistence.CascadeType;
 
 import io.quarkus.hibernate.orm.panache.PanacheEntity;
 
