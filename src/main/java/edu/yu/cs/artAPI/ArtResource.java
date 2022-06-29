@@ -31,7 +31,6 @@ public class ArtResource {
 
     @Inject ArtRepository ar;
     @Inject GalleryRepository gr; 
-    
 
     @GET
     @Path("/{gallery-id}/arts")
@@ -39,19 +38,7 @@ public class ArtResource {
             @PathParam("gallery-id") long galleryId,
             @QueryParam("name") String name,
             @QueryParam("creator") String creator) {
-        if (name == null & creator == null) {
-            // Gets all of the art from a specific gallery
-            return gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new).artList;
-        } else if (creator == null) {
-            //Optional query param of "name"
-            return ar.findByName(galleryId, name);
-        } else if (name == null) {
-            // Optional query param of "creator"
-            return ar.findByName(galleryId, creator);
-        } else {
-            // Optional query param of "name" and "creator"
-            return ar.findByNameAndCreator(galleryId, name, creator);
-        }
+        return ar.search(galleryId, name, creator);
     }
 
     @POST
