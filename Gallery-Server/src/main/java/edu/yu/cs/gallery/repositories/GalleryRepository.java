@@ -1,10 +1,9 @@
-package edu.yu.cs.artAPI.repositories;
+package edu.yu.cs.gallery.repositories;
 
 import javax.enterprise.context.ApplicationScoped;
 
-import edu.yu.cs.artAPI.Art;
-import edu.yu.cs.artAPI.Gallery;
-
+import edu.yu.cs.gallery.Art;
+import edu.yu.cs.gallery.Gallery;
 import io.quarkus.hibernate.orm.panache.PanacheRepository;
 
 @ApplicationScoped

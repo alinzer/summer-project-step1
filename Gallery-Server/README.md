@@ -1,4 +1,4 @@
-# artAPI Project
+# Gallery-Server Project
 
 This project uses Quarkus, the Supersonic Subatomic Java Framework.
 

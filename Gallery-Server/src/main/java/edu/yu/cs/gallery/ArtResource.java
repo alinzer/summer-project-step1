@@ -1,4 +1,4 @@
-package edu.yu.cs.artAPI;
+package edu.yu.cs.gallery;
 
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
@@ -25,8 +25,8 @@ import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response.Status;
 
-import edu.yu.cs.artAPI.repositories.ArtRepository;
-import edu.yu.cs.artAPI.repositories.GalleryRepository;
+import edu.yu.cs.gallery.repositories.ArtRepository;
+import edu.yu.cs.gallery.repositories.GalleryRepository;
 
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)

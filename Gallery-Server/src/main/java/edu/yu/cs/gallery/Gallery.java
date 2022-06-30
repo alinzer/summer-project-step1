@@ -1,4 +1,4 @@
-package edu.yu.cs.artAPI;
+package edu.yu.cs.gallery;
 
 import java.util.*;
 

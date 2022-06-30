@@ -1,4 +1,4 @@
-package edu.yu.cs.artAPI;
+package edu.yu.cs.gallery;
 
 import java.util.List;
 import javax.inject.Inject;
@@ -19,10 +19,10 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response.Status;
 
-import static javax.ws.rs.core.Response.Status.*;
+import edu.yu.cs.gallery.repositories.ArtRepository;
+import edu.yu.cs.gallery.repositories.GalleryRepository;
 
-import edu.yu.cs.artAPI.repositories.ArtRepository;
-import edu.yu.cs.artAPI.repositories.GalleryRepository;
+import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)

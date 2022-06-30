@@ -1,4 +1,4 @@
-package edu.yu.cs.artAPI;
+package edu.yu.cs.gallery;
 import javax.persistence.Entity;
 import javax.persistence.FetchType;
 import javax.persistence.JoinColumn;
