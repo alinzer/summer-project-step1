@@ -3,7 +3,6 @@ package edu.yu.cs.gallery;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-import java.net.URI;
 import java.util.List;
 
 import javax.inject.Inject;

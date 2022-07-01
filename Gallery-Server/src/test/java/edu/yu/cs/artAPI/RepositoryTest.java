@@ -1,7 +1,7 @@
-// package edu.yu.cs.artAPI;
+// package edu.yu.cs.gallery;
 
-// import edu.yu.cs.artAPI.repositories.ArtRepository;
-// import edu.yu.cs.artAPI.repositories.GalleryRepository;
+// import edu.yu.cs.gallery.repositories.ArtRepository;
+// import edu.yu.cs.gallery.repositories.GalleryRepository;
 
 // import javax.inject.Inject;
 // import javax.transaction.Transactional;

@@ -22,12 +22,16 @@ import javax.ws.rs.core.Response.Status;
 import edu.yu.cs.gallery.repositories.ArtRepository;
 import edu.yu.cs.gallery.repositories.GalleryRepository;
 
+import java.net.InetAddress;
+import java.net.UnknownHostException;
+
 import static javax.ws.rs.core.Response.Status.*;
 
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class GalleryResource {
+    InetAddress ia;
 
     @Inject
     GalleryRepository gr;
@@ -57,7 +61,8 @@ public class GalleryResource {
 
     @POST
     @Transactional
-    public Response create(Gallery gallery, @Context UriInfo uriInfo) {
+    public Response create(Gallery gallery, @Context UriInfo uriInfo) throws UnknownHostException {
+        ia = this.getIP();
         gr.persist(gallery);
         if (!gr.isPersistent(gallery)) {
             throw new NotFoundException();
@@ -65,9 +70,10 @@ public class GalleryResource {
         // return Response.status(Status.CREATED).entity(gallery).build();
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         uriBuilder.path(Long.toString(gallery.id));
+        this.registerWithHub();
         return Response.created(uriBuilder.build()).entity(gallery).status(Status.CREATED).build();
     }
-
+    
     @PUT
     @Path("{id}")
     @Consumes(MediaType.APPLICATION_JSON)
@@ -88,4 +94,21 @@ public class GalleryResource {
         boolean deleted = gr.deleteById(id);
         return deleted ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
     }
+
+    @POST 
+    @Path("/servers")
+    public Response updateIPs() {
+        return null;
+    }
+
+    private InetAddress getIP () throws UnknownHostException {
+        return InetAddress.getLocalHost();
+    }
+    
+    private void registerWithHub() {
+
+    }
+    
+
+
 }
