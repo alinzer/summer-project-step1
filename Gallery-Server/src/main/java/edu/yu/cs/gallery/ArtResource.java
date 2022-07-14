@@ -3,54 +3,56 @@ package edu.yu.cs.gallery;
 import static javax.ws.rs.core.Response.Status.BAD_REQUEST;
 import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
-import java.util.List;
+import java.net.URISyntaxException;
 
+import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
-import javax.ws.rs.Consumes;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.POST;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.MediaType;
-import javax.ws.rs.core.Response;
-import javax.ws.rs.core.UriBuilder;
-import javax.ws.rs.core.UriInfo;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
+
 
 import edu.yu.cs.gallery.repositories.ArtRepository;
 import edu.yu.cs.gallery.repositories.GalleryRepository;
+import io.quarkus.runtime.StartupEvent;
 
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ArtResource {
+    
+    Gallery gallery;
 
     @Inject ArtRepository ar;
     @Inject GalleryRepository gr; 
 
+    public void init(@Observes StartupEvent se) {
+        this.gallery = gr.findAll().firstResult();
+    }
+
+
     @GET
     @Path("/{gallery-id}/arts")
-    public List<Art> getAll(
+    public Response getAll(
             @PathParam("gallery-id") long galleryId,
             @QueryParam("name") String name,
-            @QueryParam("creator") String creator) {
-        return ar.search(galleryId, name, creator);
+            @QueryParam("creator") String creator, @Context UriInfo uriInfo) throws URISyntaxException {
+        if (this.gallery == null || galleryId != this.gallery.id) {
+            GalleryResource.redirect(galleryId, uriInfo);
+        }
+        return Response.status(Status.OK).entity(ar.search(galleryId, name, creator)).build();
     }
 
     @POST
     @Transactional
     @Path("/{gallery-id}/arts")
     //Create a piece of art within the gallery of the ID given by the path parameter
-    public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) {
-        Gallery gallery = gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
-        art.gallery = gallery;
+    public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) throws URISyntaxException {
+        if (this.gallery == null || galleryId != this.gallery.id) {
+            GalleryResource.redirect(galleryId, uriInfo);
+        }
+        art.gallery = this.gallery;
         ar.persist(art);
         if (!ar.isPersistent(art)) {
             throw new NotFoundException();
@@ -64,10 +66,10 @@ public class ArtResource {
     @Path("/{gallery-id}/arts/{id}")
     @Transactional
     //Replaces the piece of art that exists at a certain id in a certain gallery with a new one
-    public Response update(@PathParam("gallery-id") Long galleryId, @PathParam("id") Long id, Art art) {
-        //Checks that the gallery-id refers to a gallery; if not, throws a 404
-        gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
-        
+    public Response update(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, Art art, @Context UriInfo uriInfo) throws URISyntaxException {   
+        if (this.gallery == null || galleryId != this.gallery.id) {
+            GalleryResource.redirect(galleryId, uriInfo);
+        }    
         Art entity = ar.findById(id);
         if (entity == null) {
             return Response.status(NOT_FOUND).build();
@@ -82,12 +84,10 @@ public class ArtResource {
     @DELETE
     @Path("/{gallery-id}/arts/{id}")
     @Transactional
-    public Response deleteById(@PathParam("gallery-id") Long galleryId, @PathParam("id") Long id) {
-        //Checks that the gallery-id refers to a gallery; if not, throws a 404
-        gr.findByIdOptional(galleryId).orElseThrow(NotFoundException::new);
-        
-        boolean deleted = ar.deleteById(id);
-        return deleted ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
-
+    public Response deleteById(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {   
+        if (this.gallery == null || galleryId != this.gallery.id) {
+            GalleryResource.redirect(galleryId, uriInfo);
+        }     
+        return ar.deleteById(id) ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
     }
 }
