@@ -21,14 +21,16 @@ import io.quarkus.runtime.StartupEvent;
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
 public class ArtResource {
-    
-    Gallery gallery;
 
-    @Inject ArtRepository ar;
-    @Inject GalleryRepository gr; 
+    @Inject 
+    ArtRepository ar;
+    @Inject 
+    GalleryRepository gr; 
+    @Inject 
+    Utility utility;
 
     public void init(@Observes StartupEvent se) {
-        this.gallery = gr.findAll().firstResult();
+        utility.gallery = gr.findAll().firstResult();
     }
 
 
@@ -38,8 +40,8 @@ public class ArtResource {
             @PathParam("gallery-id") long galleryId,
             @QueryParam("name") String name,
             @QueryParam("creator") String creator, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (this.gallery == null || galleryId != this.gallery.id) {
-            GalleryResource.redirect(galleryId, uriInfo);
+        if (utility.gallery == null || galleryId != utility.gallery.id) {
+            utility.redirect(galleryId, uriInfo);
         }
         return Response.status(Status.OK).entity(ar.search(galleryId, name, creator)).build();
     }
@@ -49,10 +51,10 @@ public class ArtResource {
     @Path("/{gallery-id}/arts")
     //Create a piece of art within the gallery of the ID given by the path parameter
     public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (this.gallery == null || galleryId != this.gallery.id) {
-            GalleryResource.redirect(galleryId, uriInfo);
+        if (utility.gallery == null || galleryId != utility.gallery.id) {
+            utility.redirect(galleryId, uriInfo);
         }
-        art.gallery = this.gallery;
+        art.gallery = utility.gallery;
         ar.persist(art);
         if (!ar.isPersistent(art)) {
             throw new NotFoundException();
@@ -67,8 +69,8 @@ public class ArtResource {
     @Transactional
     //Replaces the piece of art that exists at a certain id in a certain gallery with a new one
     public Response update(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, Art art, @Context UriInfo uriInfo) throws URISyntaxException {   
-        if (this.gallery == null || galleryId != this.gallery.id) {
-            GalleryResource.redirect(galleryId, uriInfo);
+        if (utility.gallery == null || galleryId != utility.gallery.id) {
+            utility.redirect(galleryId, uriInfo);
         }    
         Art entity = ar.findById(id);
         if (entity == null) {
@@ -85,8 +87,8 @@ public class ArtResource {
     @Path("/{gallery-id}/arts/{id}")
     @Transactional
     public Response deleteById(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {   
-        if (this.gallery == null || galleryId != this.gallery.id) {
-            GalleryResource.redirect(galleryId, uriInfo);
+        if (utility.gallery == null || galleryId != utility.gallery.id) {
+            utility.redirect(galleryId, uriInfo);
         }     
         return ar.deleteById(id) ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
     }

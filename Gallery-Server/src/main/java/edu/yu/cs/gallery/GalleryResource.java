@@ -22,34 +22,41 @@ import static javax.ws.rs.core.Response.Status.*;
 import org.springframework.http.*;
 import org.springframework.web.reactive.function.client.WebClient;
 
+import org.eclipse.microprofile.config.inject.ConfigProperty;
+
 @Path("/galleries")
 @ApplicationScoped
 @Produces(MediaType.APPLICATION_JSON_VALUE)
 @Consumes(MediaType.APPLICATION_JSON_VALUE)
 public class GalleryResource {
-    Gallery gallery;
-    static Map<Long, URL> allServers;
-    
-    @Inject
+    @Inject 
     GalleryRepository gr;
     @Inject 
     ServerStartUp ssu;
+    @Inject 
+    Utility utility;
+    
+    @ConfigProperty(name = "serverURL")
+    String serverURL;
+
+    @ConfigProperty(name = "hubURL")
+    String hubURL;
 
     public void init(@Observes StartupEvent se) {
-        this.gallery = gr.findAll().firstResult();
+        utility.gallery = gr.findAll().firstResult();
     }
 
     @GET
-    public List<Gallery> getOnServer() {
-        return gr.listAll();
-        //return gr.find().firstResult();
+    public Gallery getOnServer() {
+        return gr.findAll().firstResult();
+        
     }
 
     @GET
     @Path("{id}")
     public Response getById(@PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (this.gallery == null || id != this.gallery.id) {
-            return redirect(id, uriInfo);
+        if (utility.gallery == null || id != utility.gallery.id) {
+            return utility.redirect(id, uriInfo);
         }
         return Response.status(Status.FOUND).entity(gr.findById(id)).build();
     }
@@ -58,8 +65,8 @@ public class GalleryResource {
     @Path("{id}")
     @Transactional
     public Response update(@PathParam("id") Long id, Gallery gallery, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (this.gallery == null || id != this.gallery.id) {
-            return redirect(id, uriInfo);
+        if (utility.gallery == null || id != utility.gallery.id) {
+            return utility.redirect(id, uriInfo);
         }
         Gallery entity = gr.findById(id);
         if (entity == null) {
@@ -73,13 +80,13 @@ public class GalleryResource {
     @Path("{id}")
     @Transactional
     public Response deleteById(@PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (this.gallery == null || id != this.gallery.id) {
-            return redirect(id, uriInfo);
+        if (utility.gallery == null || id != utility.gallery.id) {
+            return utility.redirect(id, uriInfo);
         }
         boolean deleted = gr.deleteById(id);
         if (deleted) {
-            this.gallery = null;
-            WebClient webClient = WebClient.create("https://hubserver.ngrok.io");
+            utility.gallery = null;
+            WebClient webClient = WebClient.create("https://" + hubURL);
     
             webClient.delete()
                     .uri("/hub/" + id)
@@ -91,14 +98,14 @@ public class GalleryResource {
 
     /*
      * Upon creation of a gallery with a POST:
-     * User -> THIS Gallery-Server (GalleryResource): Creating a gallery
-     * THIS Gallery-Server (GalleryResource) -> Hub-Server (Hub): Posting it's
+     * User -> utility Gallery-Server (GalleryResource): Creating a gallery
+     * utility Gallery-Server (GalleryResource) -> Hub-Server (Hub): Posting it's
      * url/"registration"
      * Hub-Server (Hub) -> ALL Gallery-Server (GalleryResource): Return the list of
      * the IP addresses
      * 
      * Upon user requesting gallery info in a GET:
-     * THIS Gallery-Server (GalleryResource): Check if this gallery can process the
+     * utility Gallery-Server (GalleryResource): Check if utility gallery can process the
      * request (is there a global way to check all incoming request to a given
      * resource?)
      */
@@ -107,12 +114,12 @@ public class GalleryResource {
     @POST
     @Transactional
     public Response create(Gallery gallery, @Context UriInfo uriInfo) throws UnknownHostException, MalformedURLException {
-        if (this.gallery != null) {
-            return Response.status(502, "This Gallery-Server already has a gallery assigned").build();
+        if (utility.gallery != null) {
+            return Response.status(409, "utility Gallery-Server already has a gallery assigned").build();
         }
         
-        this.gallery = gallery;
-        gallery.url = new URL ("https://" + System.getenv("URL") + ".ngrok.io");
+        utility.gallery = gallery;
+        gallery.url = new URL ("https://" + serverURL);
         gallery.id = this.registerWithHub(gallery.url);
         
         gr.persist(gallery);
@@ -128,7 +135,7 @@ public class GalleryResource {
     
     //Gallery talks to hub
     private long registerWithHub(URL url) throws UnknownHostException {
-        WebClient webClient = WebClient.create("https://hubserver.ngrok.io");
+        WebClient webClient = WebClient.create("https://" + hubURL);
         Long response = webClient.post()
                 .uri("/hub")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -144,26 +151,18 @@ public class GalleryResource {
     @Path("/servers")
     public Response updateIPs(Map<Long, URL> as) {
         System.out.println("in updateIPs");
-        allServers = as;
-        if (allServers.equals(allServers)) {
+        utility.allServers = as;
+        if (utility.allServers.equals(utility.allServers)) {
             return Response.status(Status.OK).build();
         }
         return Response.status(INTERNAL_SERVER_ERROR).build();
-    }
-   
-    protected static Response redirect (long id, @Context UriInfo uriInfo) throws URISyntaxException {
-        if (allServers.keySet().contains(id)) {
-            return Response.temporaryRedirect(new URI (allServers.get(id).toString() + uriInfo.getPath())).build();
-        }
-        return Response.status(NOT_FOUND).build();
     }
     
     // For testing purposes
     @Path("/servers")
     @GET
     public Map<Long, URL> IPs() {
-        System.out.println(allServers);
-        return allServers;
+        return utility.allServers;
     }
 
 }

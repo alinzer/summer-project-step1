@@ -31,8 +31,7 @@ public class Hub {
     @Transactional
     public long create(GalleryInfo gi, @Context UriInfo uriInfo) throws JsonProcessingException  {
         galleryInfoRepo.persist(gi);
-
-        this.sendURLMap ();
+        this.sendURLMap();
 
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
         uriBuilder.path(Long.toString(gi.id));
@@ -78,9 +77,12 @@ public class Hub {
         }
     }
     
-    private void sendURLMap(List<URL> extraURLs) {
+    //This method enables the URL map to be sent to URLs beyond those in the current URL map. 
+    //Current use-case is a DELETE, where the URL is deleted from the map, but the gallery located at that URL should still receive that updated map so that it can properly redirect requests. So, this method is called with otherURLs containing the URL of the deleted gallery.
+    //Future use-cases for this method might include exporting the URL map to backup servers, or doing a mass delete where more than one URL is deleted from the map and the map needs to be sent to many URLs which are now not present in the map.
+    private void sendURLMap(List<URL> otherURLs) {
         sendURLMap();
-        for (URL url : extraURLs) {
+        for (URL url : otherURLs) {
             postToGallery(url);
         }
     }
