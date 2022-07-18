@@ -5,7 +5,6 @@ import static javax.ws.rs.core.Response.Status.NOT_FOUND;
 
 import java.net.URISyntaxException;
 
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
@@ -15,7 +14,6 @@ import javax.ws.rs.core.Response.Status;
 
 import edu.yu.cs.gallery.repositories.ArtRepository;
 import edu.yu.cs.gallery.repositories.GalleryRepository;
-import io.quarkus.runtime.StartupEvent;
 
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
@@ -28,10 +26,6 @@ public class ArtResource {
     GalleryRepository gr; 
     @Inject 
     Utility utility;
-
-    public void init(@Observes StartupEvent se) {
-        utility.gallery = gr.findAll().firstResult();
-    }
 
 
     @GET

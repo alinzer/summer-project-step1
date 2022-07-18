@@ -18,13 +18,12 @@ import io.quarkus.runtime.annotations.QuarkusMain;
 import reactor.core.publisher.Mono;
 
 @QuarkusMain
-public class ServerStartUp implements QuarkusApplication{
+public class ServerStartUp implements QuarkusApplication {
 
     @Inject
     GalleryRepository gr;
     @Inject
     Utility utility;
-
 
     @ConfigProperty(name = "serverURL")
     String serverURL;
@@ -52,5 +51,5 @@ public class ServerStartUp implements QuarkusApplication{
         }
         Quarkus.waitForExit();
         return 0;
-}
+    }
 }

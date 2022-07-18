@@ -1,13 +1,11 @@
 package edu.yu.cs.gallery;
 
 import edu.yu.cs.gallery.repositories.GalleryRepository;
-import io.quarkus.runtime.StartupEvent;
 
 import java.util.*;
 import java.net.*;
 
 import javax.enterprise.context.ApplicationScoped;
-import javax.enterprise.event.Observes;
 import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
@@ -42,14 +40,9 @@ public class GalleryResource {
     @ConfigProperty(name = "hubURL")
     String hubURL;
 
-    public void init(@Observes StartupEvent se) {
-        utility.gallery = gr.findAll().firstResult();
-    }
-
     @GET
     public Gallery getOnServer() {
-        return gr.findAll().firstResult();
-        
+        return utility.gallery;
     }
 
     @GET
@@ -115,7 +108,7 @@ public class GalleryResource {
     @Transactional
     public Response create(Gallery gallery, @Context UriInfo uriInfo) throws UnknownHostException, MalformedURLException {
         if (utility.gallery != null) {
-            return Response.status(409, "utility Gallery-Server already has a gallery assigned").build();
+            return Response.status(409, "Gallery-Server already has a gallery assigned").build();
         }
         
         utility.gallery = gallery;
