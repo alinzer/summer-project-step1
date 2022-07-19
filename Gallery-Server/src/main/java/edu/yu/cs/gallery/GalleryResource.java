@@ -46,7 +46,7 @@ public class GalleryResource {
 
     @GET
         public Response getOnServer() {
-        return Response.status(Status.FOUND).entity(gr.findAll().firstResult()).build();
+        return Response.status(Status.OK).entity(gr.findAll().firstResult()).build();
     }
 
     @GET

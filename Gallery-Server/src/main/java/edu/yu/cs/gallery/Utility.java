@@ -5,7 +5,6 @@ import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
 
-    import javax.enterprise.context.ApplicationScoped;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.ws.rs.core.Context;
@@ -52,6 +51,6 @@ public class Utility {
                 returnEntities.add(response);
             }
         }
-        return Response.status(Status.FOUND).entity(returnEntities).build();
+        return Response.status(Status.OK).entity(returnEntities).build();
     }
 }
