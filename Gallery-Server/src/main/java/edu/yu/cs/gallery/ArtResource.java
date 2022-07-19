@@ -63,14 +63,6 @@ public class ArtResource {
         uriBuilder.path(Long.toString(art.id));
         return Response.created(uriBuilder.build()).entity(art).status(Status.CREATED).build();
     }
-    
-    // @POST
-    // @Transactional
-    // @Path("/{gallery-id}/arts")
-    // //Create a piece of art within the gallery of the ID given by the path parameter
-    // public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) throws URISyntaxException {
-    //     return null;
-    // }
   
     @PUT
     @Path("/{gallery-id}/arts/{id}")
