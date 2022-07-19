@@ -44,14 +44,11 @@ public class Hub {
     @Consumes(MediaType.APPLICATION_JSON_VALUE)
     @Transactional
     public Response update(@PathParam("id") Long id, URL url) {
-        System.out.println(url);
         GalleryInfo gi = galleryInfoRepo.findById(id);
         if (gi == null) {
             throw new NotFoundException();
         }
-        gi.url = url;
-        System.out.println(galleryInfoRepo.toMap().toString());
-        System.out.println(galleryInfoRepo.listAll());   
+        gi.url = url; 
         
         this.sendURLMap ();
         return Response.status(Status.OK).build();

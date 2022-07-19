@@ -1,5 +1,6 @@
 package edu.yu.cs.gallery;
 
+import edu.yu.cs.gallery.repositories.ArtRepository;
 import edu.yu.cs.gallery.repositories.GalleryRepository;
 
 import java.util.*;
@@ -29,6 +30,9 @@ import org.eclipse.microprofile.config.inject.ConfigProperty;
 public class GalleryResource {
     @Inject 
     GalleryRepository gr;
+    @Inject
+    ArtRepository ar;
+    
     @Inject 
     ServerStartUp ssu;
     @Inject 
@@ -41,8 +45,14 @@ public class GalleryResource {
     String hubURL;
 
     @GET
-    public Gallery getOnServer() {
-        return utility.gallery;
+        public Response getOnServer() {
+        return Response.status(Status.FOUND).entity(gr.findAll().firstResult()).build();
+    }
+
+    @GET
+    @Path("batch")
+    public Response getOnServer(@QueryParam("gallery") long[] galleries, @Context UriInfo uriInfo) throws URISyntaxException {
+        return utility.redirect(galleries, uriInfo);
     }
 
     @GET
@@ -61,12 +71,12 @@ public class GalleryResource {
         if (utility.gallery == null || id != utility.gallery.id) {
             return utility.redirect(id, uriInfo);
         }
-        Gallery entity = gr.findById(id);
-        if (entity == null) {
+        Gallery currentGallery = gr.findById(id);
+        if (currentGallery == null) {
             throw new NotFoundException();
         }
-        entity.name = gallery.name;
-        return Response.status(Status.OK).entity(entity).build();
+        currentGallery.name = gallery.name;
+        return Response.status(Status.OK).entity(currentGallery).build();
     }
 
     @DELETE
@@ -143,7 +153,6 @@ public class GalleryResource {
     @POST 
     @Path("/servers")
     public Response updateIPs(Map<Long, URL> as) {
-        System.out.println("in updateIPs");
         utility.allServers = as;
         if (utility.allServers.equals(utility.allServers)) {
             return Response.status(Status.OK).build();
