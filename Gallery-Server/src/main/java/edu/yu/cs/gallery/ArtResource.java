@@ -35,18 +35,24 @@ public class ArtResource {
             @QueryParam("name") String name,
             @QueryParam("creator") String creator, @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || galleryId != utility.gallery.id) {
-            utility.redirect(galleryId, uriInfo);
+            return utility.redirect(galleryId, uriInfo);
         }
         return Response.status(Status.OK).entity(ar.search(galleryId, name, creator)).build();
     }
-
+    
+    @GET
+    @Path("/batch/arts")
+    public Response getOnServer(@QueryParam("gallery") long[] galleries, @Context UriInfo uriInfo) throws URISyntaxException {
+        return utility.redirect(galleries, uriInfo);
+    }
+    
     @POST
     @Transactional
     @Path("/{gallery-id}/arts")
     //Create a piece of art within the gallery of the ID given by the path parameter
     public Response create(@PathParam("gallery-id") long galleryId, Art art, @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || galleryId != utility.gallery.id) {
-            utility.redirect(galleryId, uriInfo);
+            return utility.redirect(galleryId, uriInfo);
         }
         art.gallery = utility.gallery;
         ar.persist(art);
@@ -64,7 +70,7 @@ public class ArtResource {
     //Replaces the piece of art that exists at a certain id in a certain gallery with a new one
     public Response update(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, Art art, @Context UriInfo uriInfo) throws URISyntaxException {   
         if (utility.gallery == null || galleryId != utility.gallery.id) {
-            utility.redirect(galleryId, uriInfo);
+           return utility.redirect(galleryId, uriInfo);
         }    
         Art entity = ar.findById(id);
         if (entity == null) {
@@ -82,7 +88,7 @@ public class ArtResource {
     @Transactional
     public Response deleteById(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {   
         if (utility.gallery == null || galleryId != utility.gallery.id) {
-            utility.redirect(galleryId, uriInfo);
+            return utility.redirect(galleryId, uriInfo);
         }     
         return ar.deleteById(id) ? Response.noContent().build() : Response.status(BAD_REQUEST).build();
     }

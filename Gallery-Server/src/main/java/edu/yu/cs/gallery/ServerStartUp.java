@@ -22,6 +22,7 @@ public class ServerStartUp implements QuarkusApplication {
 
     @Inject
     GalleryRepository gr;
+    
     @Inject
     Utility utility;
 
