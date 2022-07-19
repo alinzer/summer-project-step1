@@ -10,6 +10,7 @@ import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import javax.ws.rs.core.Response.Status;
+import java.util.*;
 
 
 import edu.yu.cs.gallery.repositories.ArtRepository;
@@ -63,6 +64,23 @@ public class ArtResource {
         uriBuilder.path(Long.toString(art.id));
         return Response.created(uriBuilder.build()).entity(art).status(Status.CREATED).build();
     }
+    
+    
+    @POST
+    @Transactional
+    @Path("/{gallery-id}/arts")
+    //Create a piece of art within the gallery of the ID given by the path parameter
+    public Response create(@PathParam("gallery-id") long galleryId, List<Art> arts, @Context UriInfo uriInfo) throws URISyntaxException {
+        if (utility.gallery == null || galleryId != utility.gallery.id) {
+            return utility.redirect(galleryId, uriInfo);
+        }
+        for (Art art : arts) {
+            art.gallery = utility.gallery;
+        }
+        ar.persist(arts);
+        return Response.status(Status.CREATED).entity(arts).build();
+    }
+    
   
     @PUT
     @Path("/{gallery-id}/arts/{id}")
