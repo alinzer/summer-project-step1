@@ -8,7 +8,6 @@ import io.quarkus.hibernate.orm.panache.PanacheRepository;
 
 @ApplicationScoped
 public class GalleryInfoRepository implements PanacheRepository<GalleryInfo> {
-
     public Map<Long, URL> toMap() {
         Map<Long, URL> giMap = new HashMap<>();
         List<GalleryInfo> giList = listAll();
@@ -20,4 +19,7 @@ public class GalleryInfoRepository implements PanacheRepository<GalleryInfo> {
         return giMap;
     }
 
+    protected Long leaderId() {
+        return find("isLeader", true).firstResult().id;
+    }
 }

@@ -11,9 +11,10 @@ import java.net.URL;
 import java.util.*;
 
 import org.springframework.web.reactive.function.client.WebClient;
-import org.springframework.http.MediaType;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+
+import org.springframework.http.MediaType;
 
 import reactor.core.publisher.Mono;
 
@@ -29,8 +30,9 @@ public class Hub {
     //Hub talks back to gallery and returns the updated list of the IPs 
     @POST
     @Transactional
-    public long create(GalleryInfo gi, @Context UriInfo uriInfo) throws JsonProcessingException  {
+    public long create(GalleryInfo gi, @Context UriInfo uriInfo) throws JsonProcessingException {
         galleryInfoRepo.persist(gi);
+        setLeader(gi);
         this.sendURLMap();
 
         UriBuilder uriBuilder = uriInfo.getAbsolutePathBuilder();
@@ -70,7 +72,9 @@ public class Hub {
         Map<Long, URL> allGI = galleryInfoRepo.toMap();
         for (long currentId : allGI.keySet()) {
             // Code to update each IP with the new data
-            postToGallery(galleryInfoRepo.toMap().get(currentId));
+            URL url = galleryInfoRepo.toMap().get(currentId);
+            postToGallery(url);
+            postLeaderToGallery(url);
         }
     }
     
@@ -83,6 +87,15 @@ public class Hub {
             postToGallery(url);
         }
     }
+    
+    private void postLeaderToGallery(URL url) {
+        WebClient webClient = WebClient.create(url.toString());
+        webClient.post()
+                .uri("/galleries/leader")
+                .body(Mono.just(galleryInfoRepo.leaderId()), Long.class)
+                .retrieve()
+                .bodyToMono(String.class).block();
+    }
 
     private void postToGallery(URL url) {
         WebClient webClient = WebClient.create(url.toString());
@@ -93,4 +106,10 @@ public class Hub {
                 .bodyToMono(String.class).block();
     }
     
+    //Logic for setting leader election. Currently, just selects the first-added gallery (id of 1). Can be modified in the future.
+    private void setLeader(GalleryInfo gi) {
+        if (gi.id.equals(Long.valueOf(1))) {
+            gi.isLeader = true;
+        }
+    }
 }
