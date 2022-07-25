@@ -20,10 +20,11 @@ import javax.ws.rs.core.Response.Status;
 import static javax.ws.rs.core.Response.Status.*;
 
 import org.springframework.http.*;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import edu.yu.cs.gallery.Utility.Runnable;
+
 
 @Path("/galleries")
 @ApplicationScoped
@@ -48,7 +49,7 @@ public class GalleryResource {
 
     @GET
     public Response getOnServer() {
-    return Response.status(Status.OK).entity(gr.findAll().firstResult()).build();
+        return Response.status(Status.OK).entity(gr.findAll().firstResult()).build();
     }
 
     @GET
@@ -58,12 +59,6 @@ public class GalleryResource {
             return utility.temporaryRedirect(id, uriInfo);
         }
         return Response.status(Status.OK).entity(gr.findById(id)).build();
-    }
-    
-    @POST
-    @Path("/test") 
-    public String get (@Context Request request, @Context UriInfo uriInfo, @RequestBody String requestBody) {
-        return requestBody;
     }
 
     @PUT
@@ -154,30 +149,24 @@ public class GalleryResource {
     //Hub talks to the gallery and sets the map of the IDs to the URLs.
     @POST 
     @Path("/servers")
-    public Response updateIPs(Map<Long, URL> as) {
+    public void updateIPs(Map<Long, URL> as) {
         utility.allServers = as;
-        if (utility.allServers.equals(as)) {
-            return Response.status(Status.OK).build();
-        }
-        return Response.status(INTERNAL_SERVER_ERROR).build();
     }
     
     // Hub talks to the gallery and sets the leaderID.
     @POST 
     @Path("/leader")
-    public Response updateLeader(Long leaderID) {
+    public void updateLeader(Long leaderID) {
         utility.leaderID = leaderID;
-        if (utility.leaderID.equals(leaderID)) {
-            return Response.status(Status.OK).build();
-        }
-        return Response.status(INTERNAL_SERVER_ERROR).build();
     }
 
 // ---------------------------------------Batch-Requests--------------------------------------------//
     @GET
     @Path("/batch")
     public Response getOnServer(@QueryParam("gallery") long[] galleries, @Context UriInfo uriInfo, @Context Request request) throws URISyntaxException {
-        return utility.readRedirect(galleries, uriInfo, request);
+        Runnable<Response> localMethod = (Gallery gl) -> getById(gl.id, uriInfo);
+    
+        return utility.readRedirect(galleries, uriInfo, request, localMethod);
     }
 
     // For testing purposes

@@ -20,6 +20,8 @@ import java.util.*;
 import edu.yu.cs.gallery.repositories.ArtRepository;
 import edu.yu.cs.gallery.repositories.GalleryRepository;
 
+import edu.yu.cs.gallery.Utility.Runnable;
+
 @Path("/galleries")
 @Produces(MediaType.APPLICATION_JSON)
 @Consumes(MediaType.APPLICATION_JSON)
@@ -65,9 +67,8 @@ public class ArtResource {
             }
         }
     }
-    
             //Create a single piece of art within the gallery of the ID given by the path parameter
-            private Response create(long galleryId, Art art, UriInfo uriInfo) throws URISyntaxException {
+            protected Response create(long galleryId, Art art, UriInfo uriInfo) throws URISyntaxException {
                 if (utility.gallery == null || galleryId != utility.gallery.id) {
                     return utility.temporaryRedirect(galleryId, uriInfo);
                 }
@@ -82,7 +83,7 @@ public class ArtResource {
             }
             
             //Create multiple pieces of art within the gallery of the ID given by the path parameter
-            public Response create(long galleryId, Art[] arts, UriInfo uriInfo) throws URISyntaxException {
+            protected Response create(long galleryId, Art[] arts, UriInfo uriInfo) throws URISyntaxException {
                 if (utility.gallery == null || galleryId != utility.gallery.id) {
                     return utility.temporaryRedirect(galleryId, uriInfo);
                 }
@@ -93,12 +94,14 @@ public class ArtResource {
                 
                 return Response.status(Status.CREATED).entity(arts).build();
             }
-    
+
     @PUT
     @Path("/{gallery-id}/arts/{id}")
     @Transactional
-    //Replaces the piece of art that exists at a certain id in a certain gallery with a new one
-    public Response update(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, Art art, @Context UriInfo uriInfo) throws URISyntaxException {
+    // Replaces the piece of art that exists at a certain id in a certain gallery
+    // with a new one
+    public Response update(@PathParam("gallery-id") long galleryId, @PathParam("id") Long id, Art art,
+            @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || galleryId != utility.gallery.id) {
             return utility.temporaryRedirect(galleryId, uriInfo);
         }
@@ -112,16 +115,18 @@ public class ArtResource {
 
         return Response.status(Status.OK).entity(currentArt).build();
     }
-    
+
     @PUT
     @Transactional
     @Path("/{gallery-id}/arts")
-    // Create a piece of art within the gallery of the ID given by the path parameter
-    public Response update(@PathParam("gallery-id") long galleryId, List<Art> arts, @Context UriInfo uriInfo) throws URISyntaxException {
+    // Create a piece of art within the gallery of the ID given by the path
+    // parameter
+    public Response update(@PathParam("gallery-id") long galleryId, List<Art> arts, @Context UriInfo uriInfo)
+            throws URISyntaxException {
         if (utility.gallery == null || galleryId != utility.gallery.id) {
             return utility.temporaryRedirect(galleryId, uriInfo);
         }
-    
+
         List<Art> successfulArts = new ArrayList<>();
         for (Art art : arts) {
             Art currentArt = ar.findById(art.id);
@@ -133,7 +138,8 @@ public class ArtResource {
             successfulArts.add(art);
         }
         return Response.status(Status.OK).entity(arts).build();
-    }   
+    }
+
 
     @DELETE
     @Path("/{gallery-id}/arts/{id}")
@@ -150,19 +156,22 @@ public class ArtResource {
     @GET
     @Path("/batch/arts")
     public Response getOnServer(@QueryParam("gallery") long[] galleryIDs, @Context UriInfo uriInfo, @Context Request request) throws URISyntaxException {
-        return utility.readRedirect(galleryIDs, uriInfo, request);
+        Runnable<Response> localMethod = (Gallery gl) -> getAll (gl.id, null, null, uriInfo);
+        return utility.readRedirect(galleryIDs, uriInfo, request, localMethod);
     }
     
     @POST
     @Path("/batch/arts")
     public Response postOnServer(@Context UriInfo uriInfo, @Context Request request, Gallery[] galleries) throws URISyntaxException {
-        return utility.writeRedirect(galleries, uriInfo, request);
+        Runnable<Response> localMethod = (Gallery gl) -> creates(gl.id, gl.artList.toArray(), uriInfo);        
+        return utility.writeRedirect(galleries, uriInfo, request, localMethod);
     }
     
     @PUT
     @Path("/batch/arts")
     public Response putOnServer(@Context UriInfo uriInfo, @Context Request request, Gallery[] galleries) throws URISyntaxException {
-        return utility.writeRedirect(galleries, uriInfo, request);
+        Runnable<Response> localMethod = (Gallery gl) -> update(gl.id, gl.artList, uriInfo);        
+        return utility.writeRedirect(galleries, uriInfo, request, localMethod);
     }
     
 }

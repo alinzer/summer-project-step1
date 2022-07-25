@@ -18,8 +18,4 @@ public class GalleryInfoRepository implements PanacheRepository<GalleryInfo> {
 
         return giMap;
     }
-
-    protected Long leaderId() {
-        return find("isLeader", true).firstResult().id;
-    }
 }

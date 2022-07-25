@@ -4,5 +4,10 @@
     "cSpell.words": [
         "innermain",
         "Ngrok"
-    ]
+    ],
+    "[markdown]": {
+        "editor.wordWrap": "wordWrapColumn",
+        "editor.wordWrapColumn": 800,
+        "diffEditor.wordWrap": "off"
+    }
 }
