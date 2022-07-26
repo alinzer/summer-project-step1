@@ -11,6 +11,7 @@ import javax.inject.Inject;
 import javax.transaction.Transactional;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
+import javax.ws.rs.core.Request;
 import javax.ws.rs.core.UriBuilder;
 import javax.ws.rs.core.UriInfo;
 import javax.ws.rs.core.Response;
@@ -20,8 +21,10 @@ import static javax.ws.rs.core.Response.Status.*;
 
 import org.springframework.http.*;
 import org.springframework.web.reactive.function.client.WebClient;
-
 import org.eclipse.microprofile.config.inject.ConfigProperty;
+
+import edu.yu.cs.gallery.Utility.Runnable;
+
 
 @Path("/galleries")
 @ApplicationScoped
@@ -45,31 +48,25 @@ public class GalleryResource {
     String hubURL;
 
     @GET
-        public Response getOnServer() {
+    public Response getOnServer() {
         return Response.status(Status.OK).entity(gr.findAll().firstResult()).build();
-    }
-
-    @GET
-    @Path("batch")
-    public Response getOnServer(@QueryParam("gallery") long[] galleries, @Context UriInfo uriInfo) throws URISyntaxException {
-        return utility.redirect(galleries, uriInfo);
     }
 
     @GET
     @Path("{id}")
     public Response getById(@PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || id != utility.gallery.id) {
-            return utility.redirect(id, uriInfo);
+            return utility.temporaryRedirect(id, uriInfo);
         }
-        return Response.status(Status.FOUND).entity(gr.findById(id)).build();
+        return Response.status(Status.OK).entity(gr.findById(id)).build();
     }
-    
+
     @PUT
     @Path("{id}")
     @Transactional
     public Response update(@PathParam("id") Long id, Gallery gallery, @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || id != utility.gallery.id) {
-            return utility.redirect(id, uriInfo);
+            return utility.temporaryRedirect(id, uriInfo);
         }
         Gallery currentGallery = gr.findById(id);
         if (currentGallery == null) {
@@ -84,7 +81,7 @@ public class GalleryResource {
     @Transactional
     public Response deleteById(@PathParam("id") Long id, @Context UriInfo uriInfo) throws URISyntaxException {
         if (utility.gallery == null || id != utility.gallery.id) {
-            return utility.redirect(id, uriInfo);
+            return utility.temporaryRedirect(id, uriInfo);
         }
         boolean deleted = gr.deleteById(id);
         if (deleted) {
@@ -149,22 +146,33 @@ public class GalleryResource {
         return response;
     }
 
-    //Hub talks to the gallery
+    //Hub talks to the gallery and sets the map of the IDs to the URLs.
     @POST 
     @Path("/servers")
-    public Response updateIPs(Map<Long, URL> as) {
+    public void updateIPs(Map<Long, URL> as) {
         utility.allServers = as;
-        if (utility.allServers.equals(utility.allServers)) {
-            return Response.status(Status.OK).build();
-        }
-        return Response.status(INTERNAL_SERVER_ERROR).build();
     }
     
+    // Hub talks to the gallery and sets the leaderID.
+    @POST 
+    @Path("/leader")
+    public void updateLeader(Long leaderID) {
+        utility.leaderID = leaderID;
+    }
+
+// ---------------------------------------Batch-Requests--------------------------------------------//
+    @GET
+    @Path("/batch")
+    public Response getOnServer(@QueryParam("gallery") long[] galleries, @Context UriInfo uriInfo, @Context Request request) throws URISyntaxException {
+        Runnable<Response> localMethod = (Gallery gl) -> getById(gl.id, uriInfo);
+    
+        return utility.readRedirect(galleries, uriInfo, request, localMethod);
+    }
+
     // For testing purposes
     @Path("/servers")
     @GET
     public Map<Long, URL> IPs() {
         return utility.allServers;
     }
-
 }
